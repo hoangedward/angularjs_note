@@ -1,0 +1,205 @@
+AngularJS_Note
+
+http://bguiz.github.io/js-standards/angularjs/naming/
+https://github.com/toddmotto/angularjs-styleguide
+
+Main guide:
+	https://www.guru99.com/angularjs-tutorial.html
+
+Example course:
+	https://github.com/toddmotto/angular-1-5-components-app/tree/ES2015
+
+
+==================================================
+
+
+============ Project Folder Structure
+
+
+============ Bootstrap
+	Start from index.html
+	<html ng-app="root" ng-strict-di>
+
+	"root" is the root module
+
+	src\app\root.module.js
+		// Create root module and reference to other modules
+		angular
+		  .module('root', [
+		    'common',
+		    'components',
+		    'templates'
+		  ]);	// because it receives 1 param ==> create new module
+
+	src\app\root.component.js
+		var root = {
+		  templateUrl: './root.html'
+		};
+		angular
+		  .module('root')	// because it only receives 1 param ==> get, not create
+		  .component('root', root);
+	src\app\root.html
+		<div class="root">
+		  <div ui-view></div>
+		</div>
+
+	// TODO: ui-view
+
+	src\app\components\components.module.js
+		// create new module and refer to its child modules
+		angular
+		  .module('components', [
+		    'components.contact',
+		    'components.auth'
+		  ]);
+
+
+============ $stateProvider
+angular
+  .module('components.contact')
+  .component('contacts', contacts)
+  .config(function ($stateProvider) {
+    $stateProvider
+      .state('contacts', {
+        parent: 'app',
+        url: '/contacts?filter',
+        component: 'contacts',
+        params: {
+          filter: {
+            value: 'none'
+          }
+        },
+        resolve: {
+          contacts: function (ContactService) {
+            return ContactService.getContactList().$loaded();
+          },
+          filter: function ($transition$) {
+            return $transition$.params();
+          }
+        }
+      });
+  });
+
+
+============ Routing
+https://thinkster.io/a-better-way-to-learn-angularjs#routing
+ng-view
+	is the directive that angular uses as a container to switch between views.
+
+you'll need to include the angular-route.js file after your the base angular javascript file.
+https://www.guru99.com/angularjs-routes.html
+
+https://toddmotto.com/resolve-promises-in-angular-routes/
+
+
+
+============ $inject
+
+
+============ contacts.component.js vs contacts.controller.js
+Component
+- Register component to module
+- Config route
+- using controller to work with which html template
+
+contacts.component.js
+	var contacts = {
+	  bindings: {
+	    contacts: '<',
+	    filter: '<'
+	  },
+	  templateUrl: './contacts.html',
+	  controller: 'ContactsController'
+	};
+
+angular
+  .module('components.contact')
+  .component('contacts', contacts)
+  .config(function ($stateProvider) {
+    $stateProvider
+      .state('contacts', {
+        parent: 'app',
+        url: '/contacts?filter',
+        component: 'contacts',
+        params: {
+          filter: {
+            value: 'none'
+          }
+        },
+        resolve: {
+          contacts: function (ContactService) {
+            return ContactService.getContactList().$loaded();
+          },
+          filter: function ($transition$) {
+            return $transition$.params();
+          }
+        }
+      });
+  });
+
+
+Controller
+	Working with view
+	Register itself with module
+	Using resolve part from component
+
+	contacts.controller.js
+	function ContactsController($filter, $state) {
+	  var ctrl = this;
+
+	  ctrl.$onInit = function() {
+	    ctrl.filteredContacts = $filter('contactsFilter')(ctrl.contacts, ctrl.filter);
+	  };
+
+	  ctrl.goToContact = function (event) {
+	    $state.go('contact', {
+	      id: event.contactId
+	    });
+	  };
+	}
+
+	angular
+	  .module('components.contact')
+	  .controller('ContactsController', ContactsController);
+
+============ Service vs Factory vs Provider
+
+	https://tylermcginnis.com/angularjs-factory-vs-service-vs-provider/
+
+
+============ Promises in Angular
+Promises in AngularJS are provided by the built-in $q service
+https://thinkster.io/a-better-way-to-learn-angularjs/promises
+
+
+============ Isolate Scope & Restrict
+https://www.undefinednull.com/2014/02/11/mastering-the-scope-of-a-directive-in-angularjs/
+https://www.codehub.vn/Angular-JS-Co-Ban/AngularJS-Directive
+
+restrict: 'A', 'E', 'AE'
+
+var contactDetail = {
+  bindings: {
+    contact: '<',
+    onSave: '&',
+    onUpdate: '&',
+    onDelete: '&'
+  },
+  templateUrl: './contact-detail.html',
+  controller: 'ContactDetailController'
+};
+
+angular
+  .module('components.contact')
+  .component('contactDetail', contactDetail);
+
+
+============ Testing
+https://www.yearofmoo.com/2013/01/full-spectrum-testing-with-angularjs-and-karma.html
+
+
+============ HTTP
+	https://thinkster.io/a-better-way-to-learn-angularjs#http-and-server-interaction
+
+
+============ $stateProvider (ui-router) vs $routeProvider
